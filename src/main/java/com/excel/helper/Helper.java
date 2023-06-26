@@ -1,12 +1,19 @@
 package com.excel.helper;
 
+import com.excel.entity.Category;
 import com.excel.entity.Product;
+import org.apache.catalina.manager.JspHelper;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -71,5 +78,56 @@ public class Helper {
             e.printStackTrace();
         }
         return list;
+    }
+
+    //store the haeder name of excel sheet
+    public static String[] HEADERS = {
+            "id","title","description","coverImage"
+    };
+
+    public static String SHEET_NAME = "category_data";
+    public static ByteArrayInputStream dataToExcel(List<Category> list) throws IOException{
+        // create WorkBook
+        Workbook workbook = new XSSFWorkbook();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        try {
+
+            // create sheet
+            Sheet sheet = workbook.createSheet(SHEET_NAME);
+
+            //create row : header row
+            Row row = sheet.createRow(0);
+
+            //create colum header
+            for (int i=0;i< HEADERS.length;i++)
+            {
+                row.createCell(i).setCellValue(HEADERS[i]);
+            }
+            // value row
+            int rowIndex = 1;
+            for (Category c : list){
+                Row dataRow = sheet.createRow(rowIndex);
+                rowIndex++;
+
+                dataRow.createCell(0).setCellValue(c.getCategoryId());
+                dataRow.createCell(1).setCellValue(c.getTitle());
+                dataRow.createCell(2).setCellValue(c.getDescription());
+                dataRow.createCell(3).setCellValue(c.getCoverImage());
+            }
+            workbook.write(out);
+
+            return new ByteArrayInputStream(out.toByteArray());
+
+        }
+        catch (IOException e){
+            e.printStackTrace();
+            System.out.println("failed to import data to excel");
+        }
+        finally {
+            workbook.close();
+            out.close();
+        }
+        return null;
     }
 }
